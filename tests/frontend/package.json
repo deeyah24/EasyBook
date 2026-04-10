@@ -1,0 +1,18 @@
+{
+  "name": "easybook-frontend-tests",
+  "version": "1.0.0",
+  "description": "Frontend unit tests for EasyBook",
+  "scripts": {
+    "test": "jest --verbose --coverage",
+    "test:ci": "jest --verbose --ci --coverage --coverageReporters=text-summary"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/*.test.js"],
+    "collectCoverageFrom": ["../frontend/static/js/**/*.js"],
+    "verbose": true
+  }
+}

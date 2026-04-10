@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — EasyBook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+<nav class="navbar"><div class="nav-container">
+  <a href="index.html" class="nav-logo"><span class="logo-mark">●</span> EasyBook</a>
+</div></nav>
+
+<div class="form-page">
+  <div class="form-card">
+    <h1>Create account</h1>
+    <p class="subtitle">Start booking or offering services today.</p>
+    <div id="alertContainer"></div>
+
+    <div class="form-group">
+      <label>I want to…</label>
+      <div class="role-select">
+        <label class="role-option">
+          <input type="radio" name="role" value="customer" id="roleCustomer" checked />
+          <span class="role-label"><span class="role-icon">🗓</span> Book Services</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="provider" id="roleProvider" />
+          <span class="role-label"><span class="role-icon">🏥</span> Offer Services</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="name">Full name</label>
+      <input type="text" id="name" class="form-control" placeholder="Jane Doe" autocomplete="name" />
+    </div>
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input type="email" id="email" class="form-control" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone (optional)</label>
+      <input type="tel" id="phone" class="form-control" placeholder="+1 (555) 000-0000" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" class="form-control" placeholder="Min. 6 characters" autocomplete="new-password" />
+    </div>
+
+    <button class="btn btn-primary btn-block" id="regBtn" onclick="doRegister()">Create Account</button>
+    <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--text-muted)">
+      Already have an account? <a href="login.html">Sign in →</a>
+    </p>
+  </div>
+</div>
+
+<script src="static/js/utils.js"></script>
+<script src="static/js/api.js"></script>
+<script src="static/js/auth.js"></script>
+<script>
+  if (isLoggedIn()) window.location.href = 'dashboard.html';
+
+  // Pre-select role from query param
+  const urlRole = new URLSearchParams(window.location.search).get('role');
+  if (urlRole === 'provider') document.getElementById('roleProvider').checked = true;
+
+  async function doRegister() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const role = document.querySelector('input[name="role"]:checked')?.value || 'customer';
+    const btn = document.getElementById('regBtn');
+
+    clearAlert();
+    if (!validateName(name)) return showAlert('Name must be at least 2 characters.');
+    if (!validateEmail(email)) return showAlert('Enter a valid email address.');
+    if (!validatePassword(password)) return showAlert('Password must be at least 6 characters.');
+
+    setLoading(btn, true, 'Create Account');
+    try {
+      const data = await api.post('/auth/register', { name, email, phone, password, role }, false);
+      setSession(data.token, data.user);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showAlert(err.message || 'Registration failed.');
+    } finally {
+      setLoading(btn, false, 'Create Account');
+    }
+  }
+</script>
+</body>
+</html>

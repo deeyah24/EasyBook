@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyBook — Book Services Instantly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-mark">●</span> EasyBook
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="services.html">Browse Services</a>
+      <a href="providers.html">Providers</a>
+      <span id="navAuth">
+        <a href="login.html" class="btn btn-ghost">Log in</a>
+        <a href="register.html" class="btn btn-primary">Get Started</a>
+      </span>
+      <span id="navUser" style="display:none">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#" onclick="logout()" class="btn btn-ghost">Log out</a>
+      </span>
+    </div>
+    <button class="nav-toggle" onclick="toggleNav()">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Trusted by 10,000+ customers</div>
+    <h1 class="hero-title">Book any service,<br /><em>in seconds.</em></h1>
+    <p class="hero-subtitle">From doctor visits to salon appointments — find, book, and manage everything in one place.</p>
+    <div class="hero-actions">
+      <a href="services.html" class="btn btn-primary btn-lg">Explore Services</a>
+      <a href="register.html?role=provider" class="btn btn-outline btn-lg">Become a Provider</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-n">500+</span><span class="stat-l">Services</span></div>
+      <div class="stat-div"></div>
+      <div class="stat"><span class="stat-n">200+</span><span class="stat-l">Providers</span></div>
+      <div class="stat-div"></div>
+      <div class="stat"><span class="stat-n">4.9★</span><span class="stat-l">Avg Rating</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="booking-card">
+      <div class="booking-card-header">
+        <div class="booking-avatar">👩‍⚕️</div>
+        <div>
+          <div class="booking-name">Dr. Sarah Chen</div>
+          <div class="booking-sub">General Physician · 4.9★</div>
+        </div>
+        <div class="booking-price">$80</div>
+      </div>
+      <div class="booking-slots">
+        <div class="slot active">9:00 AM</div>
+        <div class="slot">10:00 AM</div>
+        <div class="slot selected">11:00 AM</div>
+        <div class="slot">2:00 PM</div>
+        <div class="slot active">3:00 PM</div>
+        <div class="slot">4:00 PM</div>
+      </div>
+      <a href="services.html" class="btn btn-primary" style="width:100%;margin-top:1rem;text-align:center;">Book Now</a>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-header">
+      <h2>Browse by Category</h2>
+      <p>Choose from a wide range of professional services</p>
+    </div>
+    <div class="categories-grid" id="categoriesGrid">
+      <!-- Populated by JS -->
+      <div class="category-skeleton"></div>
+      <div class="category-skeleton"></div>
+      <div class="category-skeleton"></div>
+      <div class="category-skeleton"></div>
+      <div class="category-skeleton"></div>
+      <div class="category-skeleton"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED SERVICES -->
+<section class="section section-alt" id="featured">
+  <div class="container">
+    <div class="section-header">
+      <h2>Featured Services</h2>
+      <p>Highly rated services from our top providers</p>
+    </div>
+    <div class="services-grid" id="featuredGrid">
+      <div class="service-skeleton"></div>
+      <div class="service-skeleton"></div>
+      <div class="service-skeleton"></div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem">
+      <a href="services.html" class="btn btn-outline btn-lg">View All Services →</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-header">
+      <h2>How It Works</h2>
+      <p>Getting booked is as easy as 1, 2, 3</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">01</div>
+        <div class="step-icon">🔍</div>
+        <h3>Find a Service</h3>
+        <p>Browse hundreds of services across categories like medical, beauty, fitness, and more.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <div class="step-icon">📅</div>
+        <h3>Pick a Time</h3>
+        <p>See real-time availability and choose a date and time that works for you.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <div class="step-icon">✅</div>
+        <h3>You're Booked</h3>
+        <p>Get instant confirmation and manage all your appointments from your dashboard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-cta">
+  <div class="container">
+    <h2>Ready to simplify your bookings?</h2>
+    <p>Join thousands of people who use EasyBook every day.</p>
+    <a href="register.html" class="btn btn-primary btn-lg">Create Free Account</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="nav-logo"><span class="logo-mark">●</span> EasyBook</div>
+        <p>Making service booking effortless for everyone.</p>
+      </div>
+      <div class="footer-links">
+        <div><strong>Product</strong><a href="services.html">Services</a><a href="providers.html">Providers</a></div>
+        <div><strong>Account</strong><a href="login.html">Login</a><a href="register.html">Register</a></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 EasyBook. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="static/js/utils.js"></script>
+<script src="static/js/api.js"></script>
+<script src="static/js/auth.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    initAuth();
+    await loadCategories();
+    await loadFeaturedServices();
+  });
+
+  async function loadCategories() {
+    try {
+      const data = await api.get('/categories');
+      const grid = document.getElementById('categoriesGrid');
+      grid.innerHTML = '';
+      data.forEach(cat => {
+        grid.innerHTML += `
+          <a href="services.html?category_id=${cat.id}" class="category-card" style="--cat-color:${cat.color}">
+            <div class="cat-icon">${cat.icon}</div>
+            <div class="cat-name">${cat.name}</div>
+            <div class="cat-count">${cat.service_count} service${cat.service_count !== 1 ? 's' : ''}</div>
+          </a>`;
+      });
+    } catch (e) {
+      document.getElementById('categoriesGrid').innerHTML = '<p class="text-muted">Could not load categories.</p>';
+    }
+  }
+
+  async function loadFeaturedServices() {
+    try {
+      const data = await api.get('/services?per_page=3');
+      const grid = document.getElementById('featuredGrid');
+      grid.innerHTML = '';
+      data.services.forEach(svc => {
+        grid.innerHTML += buildServiceCard(svc);
+      });
+    } catch (e) {
+      document.getElementById('featuredGrid').innerHTML = '<p class="text-muted">Could not load services.</p>';
+    }
+  }
+</script>
+</body>
+</html>

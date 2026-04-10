@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — EasyBook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="nav-container">
+  <a href="index.html" class="nav-logo"><span class="logo-mark">●</span> EasyBook</a>
+  <div class="nav-links" id="navLinks">
+    <a href="services.html">Services</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" onclick="logout()" class="btn btn-ghost">Log out</a>
+  </div>
+  <button class="nav-toggle" onclick="toggleNav()">☰</button>
+</div></nav>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+      <div class="sidebar-name" id="sidebarName">Loading…</div>
+      <span class="sidebar-role" id="sidebarRole">customer</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <a href="#" onclick="showSection('overview')" class="active" id="nav-overview">
+        <span class="nav-icon">🏠</span> Overview
+      </a>
+      <a href="#" onclick="showSection('appointments')" id="nav-appointments">
+        <span class="nav-icon">📅</span> My Appointments
+      </a>
+      <a href="services.html" id="nav-book">
+        <span class="nav-icon">➕</span> Book a Service
+      </a>
+      <div class="nav-divider"></div>
+      <!-- Provider-only links -->
+      <a href="#" onclick="showSection('my-services')" id="nav-my-services" style="display:none">
+        <span class="nav-icon">🛎</span> My Services
+      </a>
+      <a href="#" onclick="showSection('availability')" id="nav-availability" style="display:none">
+        <span class="nav-icon">🕐</span> Availability
+      </a>
+      <a href="#" onclick="showSection('provider-appts')" id="nav-provider-appts" style="display:none">
+        <span class="nav-icon">📋</span> Bookings Received
+      </a>
+      <div class="nav-divider"></div>
+      <a href="#" onclick="showSection('profile')">
+        <span class="nav-icon">👤</span> Profile
+      </a>
+      <a href="#" onclick="logout()">
+        <span class="nav-icon">🚪</span> Log Out
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <div id="alertContainer"></div>
+
+    <!-- ── OVERVIEW ── -->
+    <section id="section-overview">
+      <div class="dash-title" id="overviewGreeting">Good day!</div>
+      <p class="dash-subtitle">Here's a summary of your activity.</p>
+      <div class="stats-row" id="statsRow"></div>
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Upcoming Appointments</h3>
+          <a href="#" onclick="showSection('appointments')" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Service</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
+            <tbody id="upcomingTable"><tr><td colspan="5" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MY APPOINTMENTS ── -->
+    <section id="section-appointments" style="display:none">
+      <div class="dash-title">My Appointments</div>
+      <p class="dash-subtitle">All your bookings, past and present.</p>
+      <div style="margin-bottom:1rem">
+        <select class="filter-select" id="apptStatusFilter" onchange="loadMyAppointments()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Service</th><th>Provider</th><th>Date</th><th>Time</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="myApptsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MY SERVICES (Provider) ── -->
+    <section id="section-my-services" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+        <div class="dash-title">My Services</div>
+        <button class="btn btn-primary" onclick="openModal('addServiceModal')">+ Add Service</button>
+      </div>
+      <p class="dash-subtitle">Manage the services you offer.</p>
+      <div class="services-grid" id="myServicesGrid"></div>
+    </section>
+
+    <!-- ── AVAILABILITY (Provider) ── -->
+    <section id="section-availability" style="display:none">
+      <div class="dash-title">My Availability</div>
+      <p class="dash-subtitle">Set your working hours for each day of the week.</p>
+      <div class="table-card">
+        <div class="table-card-header"><h3>Weekly Schedule</h3></div>
+        <div style="padding:1.5rem">
+          <div id="availabilityGrid"></div>
+          <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+            <h4 style="margin-bottom:1rem">Add / Update a Day</h4>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0;flex:1;min-width:140px">
+                <label>Day</label>
+                <select id="avDay" class="form-control">
+                  <option value="0">Monday</option><option value="1">Tuesday</option>
+                  <option value="2">Wednesday</option><option value="3">Thursday</option>
+                  <option value="4">Friday</option><option value="5">Saturday</option>
+                  <option value="6">Sunday</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;flex:1;min-width:120px">
+                <label>Start Time</label>
+                <input type="time" id="avStart" class="form-control" value="09:00" />
+              </div>
+              <div class="form-group" style="margin:0;flex:1;min-width:120px">
+                <label>End Time</label>
+                <input type="time" id="avEnd" class="form-control" value="17:00" />
+              </div>
+              <button class="btn btn-primary" onclick="saveAvailability()" style="margin-bottom:0">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROVIDER APPOINTMENTS ── -->
+    <section id="section-provider-appts" style="display:none">
+      <div class="dash-title">Bookings Received</div>
+      <p class="dash-subtitle">Manage appointments your customers have booked.</p>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Service</th><th>Date</th><th>Time</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="providerApptsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROFILE ── -->
+    <section id="section-profile" style="display:none">
+      <div class="dash-title">Profile</div>
+      <p class="dash-subtitle">Update your account information.</p>
+      <div class="form-card" style="max-width:480px">
+        <div id="profileAlert"></div>
+        <div class="form-group"><label>Full Name</label><input type="text" id="profName" class="form-control" /></div>
+        <div class="form-group"><label>Email</label><input type="email" id="profEmail" class="form-control" disabled style="opacity:0.6" /></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="profPhone" class="form-control" /></div>
+        <div class="form-group"><label>New Password <span style="font-weight:400;color:var(--text-muted)">(leave blank to keep current)</span></label>
+          <input type="password" id="profPassword" class="form-control" placeholder="New password…" /></div>
+        <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Add Service Modal -->
+<div class="modal-overlay" id="addServiceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="serviceModalTitle">Add Service</h2>
+      <button class="modal-close" onclick="closeModal('addServiceModal')">✕</button>
+    </div>
+    <div id="serviceModalAlert"></div>
+    <div class="form-group"><label>Service Name</label><input type="text" id="svcName" class="form-control" placeholder="e.g. General Consultation" /></div>
+    <div class="form-group"><label>Category</label>
+      <select id="svcCategory" class="form-control"><option value="">Select category…</option></select></div>
+    <div class="form-group"><label>Description</label><textarea id="svcDesc" class="form-control" placeholder="Describe your service…"></textarea></div>
+    <div style="display:flex;gap:1rem">
+      <div class="form-group" style="flex:1"><label>Price ($)</label><input type="number" id="svcPrice" class="form-control" placeholder="50.00" min="0" step="0.01" /></div>
+      <div class="form-group" style="flex:1"><label>Duration (min)</label><input type="number" id="svcDuration" class="form-control" placeholder="30" min="5" /></div>
+    </div>
+    <div class="form-group"><label>Location</label><input type="text" id="svcLocation" class="form-control" placeholder="e.g. 123 Main St or Online" /></div>
+    <input type="hidden" id="editingServiceId" />
+    <button class="btn btn-primary btn-block" onclick="saveService()">Save Service</button>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Leave a Review</h2>
+      <button class="modal-close" onclick="closeModal('reviewModal')">✕</button>
+    </div>
+    <div id="reviewAlert"></div>
+    <div class="form-group">
+      <label>Rating</label>
+      <div class="star-selector" id="starSelector">
+        <span onclick="setRating(1)">★</span>
+        <span onclick="setRating(2)">★</span>
+        <span onclick="setRating(3)">★</span>
+        <span onclick="setRating(4)">★</span>
+        <span onclick="setRating(5)">★</span>
+      </div>
+    </div>
+    <div class="form-group"><label>Comment (optional)</label><textarea id="reviewComment" class="form-control" placeholder="How was your experience?"></textarea></div>
+    <input type="hidden" id="reviewApptId" />
+    <button class="btn btn-primary btn-block" onclick="submitReview()">Submit Review</button>
+  </div>
+</div>
+
+<script src="static/js/utils.js"></script>
+<script src="static/js/api.js"></script>
+<script src="static/js/auth.js"></script>
+<script>
+  let currentUser = null;
+  let selectedRating = 0;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!requireAuth()) return;
+    initAuth();
+    currentUser = getUser();
+    setupSidebar();
+    await loadOverview();
+    await loadCategoriesForForm();
+  });
+
+  function setupSidebar() {
+    document.getElementById('sidebarName').textContent = currentUser.name;
+    document.getElementById('sidebarRole').textContent = currentUser.role;
+    document.getElementById('sidebarAvatar').textContent = currentUser.name[0].toUpperCase();
+    document.getElementById('overviewGreeting').textContent =
+      `Welcome back, ${currentUser.name.split(' ')[0]}!`;
+
+    if (currentUser.role === 'provider' || currentUser.role === 'admin') {
+      ['nav-my-services','nav-availability','nav-provider-appts'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'flex';
+      });
+    }
+    // Pre-fill profile
+    document.getElementById('profName').value = currentUser.name;
+    document.getElementById('profEmail').value = currentUser.email;
+    document.getElementById('profPhone').value = currentUser.phone || '';
+  }
+
+  function showSection(name) {
+    document.querySelectorAll('main > section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById(`section-${name}`).style.display = 'block';
+    const navEl = document.getElementById(`nav-${name}`);
+    if (navEl) navEl.classList.add('active');
+
+    if (name === 'appointments') loadMyAppointments();
+    if (name === 'my-services') loadMyServices();
+    if (name === 'availability') loadAvailability();
+    if (name === 'provider-appts') loadProviderAppointments();
+  }
+
+  async function loadOverview() {
+    try {
+      const appts = await api.get('/appointments');
+      const upcoming = appts.filter(a => ['pending','confirmed'].includes(a.status));
+      const completed = appts.filter(a => a.status === 'completed');
+      const cancelled = appts.filter(a => a.status === 'cancelled');
+
+      document.getElementById('statsRow').innerHTML = `
+        <div class="stat-card"><div class="stat-card-label">Upcoming</div><div class="stat-card-value">${upcoming.length}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Completed</div><div class="stat-card-value">${completed.length}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Cancelled</div><div class="stat-card-value">${cancelled.length}</div></div>
+        <div class="stat-card"><div class="stat-card-label">Total</div><div class="stat-card-value">${appts.length}</div></div>`;
+
+      const tbody = document.getElementById('upcomingTable');
+      if (!upcoming.length) {
+        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">📅</div><h3>No upcoming appointments</h3><p><a href="services.html">Book a service</a> to get started.</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = upcoming.slice(0,5).map(a => `
+        <tr>
+          <td><strong>${a.service_name}</strong></td>
+          <td>${formatDate(a.appointment_date)}</td>
+          <td>${a.start_time}</td>
+          <td><span class="badge ${getStatusBadgeClass(a.status)}">${a.status}</span></td>
+          <td><button class="btn btn-sm btn-danger" onclick="cancelAppt(${a.id})">Cancel</button></td>
+        </tr>`).join('');
+    } catch (e) {
+      document.getElementById('statsRow').innerHTML = '<p class="text-muted">Could not load stats.</p>';
+    }
+  }
+
+  async function loadMyAppointments() {
+    const status = document.getElementById('apptStatusFilter').value;
+    const qs = buildQueryString({ status });
+    const tbody = document.getElementById('myApptsTable');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center"><div class="spinner"></div></td></tr>`;
+    try {
+      const appts = await api.get(`/appointments?${qs}`);
+      if (!appts.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><h3>No appointments yet</h3></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = appts.map(a => `
+        <tr>
+          <td><strong>${a.service_name}</strong></td>
+          <td>${a.provider_name}</td>
+          <td>${formatDate(a.appointment_date)}</td>
+          <td>${a.start_time}</td>
+          <td>${formatPrice(a.total_price)}</td>
+          <td><span class="badge ${getStatusBadgeClass(a.status)}">${a.status}</span></td>
+          <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+            ${['pending','confirmed'].includes(a.status) ? `<button class="btn btn-sm btn-danger" onclick="cancelAppt(${a.id})">Cancel</button>` : ''}
+            ${a.status==='completed' && !a.has_review ? `<button class="btn btn-sm btn-outline" onclick="openReview(${a.id})">Review</button>` : ''}
+          </td>
+        </tr>`).join('');
+    } catch {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">Could not load appointments.</td></tr>`;
+    }
+  }
+
+  async function cancelAppt(id) {
+    if (!confirm('Cancel this appointment?')) return;
+    try {
+      await api.put(`/appointments/${id}`, { status: 'cancelled' });
+      showAlert('Appointment cancelled.', 'success');
+      await loadOverview();
+      loadMyAppointments();
+    } catch (err) { showAlert(err.message); }
+  }
+
+  // ── Provider: My Services ──────────────────────
+  async function loadMyServices() {
+    const grid = document.getElementById('myServicesGrid');
+    grid.innerHTML = '<div class="service-skeleton"></div><div class="service-skeleton"></div>';
+    try {
+      const svcs = await api.get('/services');
+      const mine = svcs.services.filter(s => s.provider_id === currentUser.id);
+      if (!mine.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🛎</div><h3>No services yet</h3><p>Add your first service to start receiving bookings.</p></div>`;
+        return;
+      }
+      grid.innerHTML = mine.map(s => `
+        <div class="service-card">
+          <div class="service-card-body">
+            <div class="service-title">${s.name}</div>
+            <div class="service-desc">${truncateText(s.description||'',80)}</div>
+            <div class="service-meta"><span>⏱ ${formatDuration(s.duration_minutes)}</span></div>
+          </div>
+          <div class="service-card-footer">
+            <span class="service-price">${formatPrice(s.price)}</span>
+            <div style="display:flex;gap:0.5rem">
+              <button class="btn btn-sm btn-outline" onclick="editService(${JSON.stringify(s).replace(/"/g,'&quot;')})">Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteService(${s.id})">Remove</button>
+            </div>
+          </div>
+        </div>`).join('');
+    } catch { grid.innerHTML = '<p class="text-muted">Could not load services.</p>'; }
+  }
+
+  async function loadCategoriesForForm() {
+    try {
+      const cats = await api.get('/categories');
+      const sel = document.getElementById('svcCategory');
+      cats.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.icon} ${c.name}</option>`);
+    } catch {}
+  }
+
+  function editService(svc) {
+    document.getElementById('serviceModalTitle').textContent = 'Edit Service';
+    document.getElementById('editingServiceId').value = svc.id;
+    document.getElementById('svcName').value = svc.name;
+    document.getElementById('svcDesc').value = svc.description || '';
+    document.getElementById('svcPrice').value = svc.price;
+    document.getElementById('svcDuration').value = svc.duration_minutes;
+    document.getElementById('svcLocation').value = svc.location || '';
+    document.getElementById('svcCategory').value = svc.category_id || '';
+    openModal('addServiceModal');
+  }
+
+  async function saveService() {
+    const id = document.getElementById('editingServiceId').value;
+    const body = {
+      name: document.getElementById('svcName').value.trim(),
+      description: document.getElementById('svcDesc').value.trim(),
+      price: parseFloat(document.getElementById('svcPrice').value),
+      duration_minutes: parseInt(document.getElementById('svcDuration').value),
+      location: document.getElementById('svcLocation').value.trim(),
+      category_id: document.getElementById('svcCategory').value || null,
+    };
+    if (!body.name) return showAlert('Service name required.', 'danger', 'serviceModalAlert');
+    if (!body.price || body.price <= 0) return showAlert('Valid price required.', 'danger', 'serviceModalAlert');
+    if (!body.duration_minutes) return showAlert('Duration required.', 'danger', 'serviceModalAlert');
+    try {
+      if (id) { await api.put(`/services/${id}`, body); }
+      else { await api.post('/services', body); }
+      closeModal('addServiceModal');
+      document.getElementById('editingServiceId').value = '';
+      document.getElementById('serviceModalTitle').textContent = 'Add Service';
+      showAlert('Service saved!', 'success');
+      loadMyServices();
+    } catch (err) { showAlert(err.message, 'danger', 'serviceModalAlert'); }
+  }
+
+  async function deleteService(id) {
+    if (!confirm('Remove this service?')) return;
+    try { await api.delete(`/services/${id}`); showAlert('Service removed.', 'success'); loadMyServices(); }
+    catch (err) { showAlert(err.message); }
+  }
+
+  // ── Provider: Availability ─────────────────────
+  async function loadAvailability() {
+    const grid = document.getElementById('availabilityGrid');
+    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    try {
+      const slots = await api.get('/providers/availability');
+      if (!slots.length) { grid.innerHTML = '<p class="text-muted">No availability set yet. Add days below.</p>'; return; }
+      grid.innerHTML = `<table style="width:100%"><thead><tr><th>Day</th><th>Start</th><th>End</th><th></th></tr></thead><tbody>
+        ${slots.filter(s=>s.is_active).map(s=>`
+        <tr>
+          <td><strong>${s.day_name}</strong></td>
+          <td>${s.start_time}</td>
+          <td>${s.end_time}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="removeAvailability(${s.id})">Remove</button></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+    } catch { grid.innerHTML = '<p class="text-muted">Could not load availability.</p>'; }
+  }
+
+  async function saveAvailability() {
+    const day = document.getElementById('avDay').value;
+    const start = document.getElementById('avStart').value;
+    const end = document.getElementById('avEnd').value;
+    if (!start || !end) return showAlert('Please set start and end times.');
+    if (start >= end) return showAlert('End time must be after start time.');
+    try {
+      await api.post('/providers/availability', { day_of_week: parseInt(day), start_time: start, end_time: end });
+      showAlert('Availability saved!', 'success');
+      loadAvailability();
+    } catch (err) { showAlert(err.message); }
+  }
+
+  async function removeAvailability(id) {
+    try { await api.delete(`/providers/availability/${id}`); loadAvailability(); }
+    catch (err) { showAlert(err.message); }
+  }
+
+  // ── Provider: Received bookings ────────────────
+  async function loadProviderAppointments() {
+    const tbody = document.getElementById('providerApptsTable');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center"><div class="spinner"></div></td></tr>`;
+    try {
+      const appts = await api.get('/appointments');
+      if (!appts.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📬</div><h3>No bookings yet</h3></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = appts.map(a => `
+        <tr>
+          <td>${a.customer_name}</td>
+          <td><strong>${a.service_name}</strong></td>
+          <td>${formatDate(a.appointment_date)}</td>
+          <td>${a.start_time}</td>
+          <td>${formatPrice(a.total_price)}</td>
+          <td><span class="badge ${getStatusBadgeClass(a.status)}">${a.status}</span></td>
+          <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
+            ${a.status==='pending' ? `<button class="btn btn-sm btn-primary" onclick="updateApptStatus(${a.id},'confirmed')">Confirm</button>` : ''}
+            ${a.status==='confirmed' ? `<button class="btn btn-sm btn-outline" onclick="updateApptStatus(${a.id},'completed')">Complete</button>` : ''}
+            ${['pending','confirmed'].includes(a.status) ? `<button class="btn btn-sm btn-danger" onclick="updateApptStatus(${a.id},'cancelled')">Cancel</button>` : ''}
+          </td>
+        </tr>`).join('');
+    } catch { tbody.innerHTML = `<tr><td colspan="7" class="text-muted">Could not load bookings.</td></tr>`; }
+  }
+
+  async function updateApptStatus(id, status) {
+    try {
+      await api.put(`/appointments/${id}`, { status });
+      showAlert(`Appointment ${status}.`, 'success');
+      loadProviderAppointments();
+    } catch (err) { showAlert(err.message); }
+  }
+
+  // ── Reviews ────────────────────────────────────
+  function openReview(apptId) {
+    document.getElementById('reviewApptId').value = apptId;
+    document.getElementById('reviewComment').value = '';
+    setRating(0);
+    openModal('reviewModal');
+  }
+
+  function setRating(n) {
+    selectedRating = n;
+    document.querySelectorAll('#starSelector span').forEach((s, i) => {
+      s.classList.toggle('active', i < n);
+    });
+  }
+
+  async function submitReview() {
+    if (!selectedRating) return showAlert('Please select a rating.', 'danger', 'reviewAlert');
+    const apptId = parseInt(document.getElementById('reviewApptId').value);
+    const comment = document.getElementById('reviewComment').value;
+    try {
+      await api.post('/reviews', { appointment_id: apptId, rating: selectedRating, comment });
+      closeModal('reviewModal');
+      showAlert('Review submitted!', 'success');
+      loadMyAppointments();
+    } catch (err) { showAlert(err.message, 'danger', 'reviewAlert'); }
+  }
+
+  // ── Profile ────────────────────────────────────
+  async function saveProfile() {
+    const name = document.getElementById('profName').value.trim();
+    const phone = document.getElementById('profPhone').value.trim();
+    const password = document.getElementById('profPassword').value;
+    if (!validateName(name)) return showAlert('Name must be at least 2 characters.', 'danger', 'profileAlert');
+    const body = { name, phone };
+    if (password) {
+      if (!validatePassword(password)) return showAlert('Password must be at least 6 chars.', 'danger', 'profileAlert');
+      body.password = password;
+    }
+    try {
+      const user = await api.put('/auth/me', body);
+      localStorage.setItem('eb_user', JSON.stringify(user));
+      currentUser = user;
+      showAlert('Profile updated!', 'success', 'profileAlert');
+      setupSidebar();
+    } catch (err) { showAlert(err.message, 'danger', 'profileAlert'); }
+  }
+</script>
+</body>
+</html>

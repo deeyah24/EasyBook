@@ -1,0 +1,358 @@
+name: EasyBook CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
+jobs:
+  # ─────────────────────────────────────────────────
+  # JOB 1 — UNIT TESTS
+  # Tests individual model methods and utility functions
+  # ─────────────────────────────────────────────────
+  unit-tests:
+    name: "🔬 Unit Tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run Unit Tests
+        working-directory: backend
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+          SECRET_KEY: test-secret-key
+          FLASK_ENV: testing
+        run: |
+          pytest app/tests/test_unit.py \
+            -v \
+            --tb=short \
+            --junit-xml=../test-results/unit-tests.xml \
+            -p no:warnings
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: test-results/unit-tests.xml
+
+  # ─────────────────────────────────────────────────
+  # JOB 2 — BACKEND TESTS
+  # Tests backend validation, business logic, and edge cases
+  # ─────────────────────────────────────────────────
+  backend-tests:
+    name: "⚙️ Backend Tests"
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: easybook_test
+          POSTGRES_USER: easybook_user
+          POSTGRES_PASSWORD: easybook_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run Backend Tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://easybook_user:easybook_pass@localhost:5432/easybook_test
+          SECRET_KEY: test-secret-key
+          FLASK_ENV: testing
+        run: |
+          pytest app/tests/test_backend.py \
+            -v \
+            --tb=short \
+            --junit-xml=../test-results/backend-tests.xml \
+            -p no:warnings
+
+      - name: Upload backend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: test-results/backend-tests.xml
+
+  # ─────────────────────────────────────────────────
+  # JOB 3 — INTEGRATION TESTS
+  # Tests full API request/response cycles with a real DB
+  # ─────────────────────────────────────────────────
+  integration-tests:
+    name: "🔗 Integration Tests"
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: easybook_test
+          POSTGRES_USER: easybook_user
+          POSTGRES_PASSWORD: easybook_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Run Integration Tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://easybook_user:easybook_pass@localhost:5432/easybook_test
+          SECRET_KEY: test-secret-key
+          FLASK_ENV: testing
+        run: |
+          pytest app/tests/test_integration.py \
+            -v \
+            --tb=short \
+            --junit-xml=../test-results/integration-tests.xml \
+            -p no:warnings
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: test-results/integration-tests.xml
+
+  # ─────────────────────────────────────────────────
+  # JOB 4 — FRONTEND TESTS
+  # Tests frontend utility functions using Jest
+  # ─────────────────────────────────────────────────
+  frontend-tests:
+    name: "🎨 Frontend Tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tests/frontend/package.json
+
+      - name: Install Jest dependencies
+        working-directory: tests/frontend
+        run: npm install
+
+      - name: Run Frontend Tests (Jest)
+        working-directory: tests/frontend
+        run: npm test -- --ci --forceExit
+
+      - name: Upload frontend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: tests/frontend/coverage
+
+  # ─────────────────────────────────────────────────
+  # JOB 5 — SELENIUM TESTS
+  # End-to-end browser tests using Selenium + Chrome
+  # ─────────────────────────────────────────────────
+  selenium-tests:
+    name: "🌐 Selenium E2E Tests"
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: easybook_test
+          POSTGRES_USER: easybook_user
+          POSTGRES_PASSWORD: easybook_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Install Chrome & ChromeDriver
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q google-chrome-stable
+          google-chrome --version
+
+      - name: Start Flask backend
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://easybook_user:easybook_pass@localhost:5432/easybook_test
+          SECRET_KEY: test-secret-key
+          FLASK_ENV: testing
+        run: |
+          python run.py &
+          sleep 5
+          curl -sf http://localhost:5000/api/health || (echo "Backend not ready" && exit 1)
+
+      - name: Serve frontend with Python HTTP server
+        working-directory: frontend
+        run: |
+          # Copy templates to root for serving
+          cp templates/*.html .
+          python -m http.server 8080 &
+          sleep 3
+          curl -sf http://localhost:8080 || (echo "Frontend not ready" && exit 1)
+
+      - name: Run Selenium Tests
+        env:
+          FRONTEND_URL: http://localhost:8080
+          DATABASE_URL: postgresql://easybook_user:easybook_pass@localhost:5432/easybook_test
+          SECRET_KEY: test-secret-key
+        run: |
+          pytest tests/selenium/test_selenium.py \
+            -v \
+            --tb=short \
+            --junit-xml=test-results/selenium-tests.xml \
+            -p no:warnings
+
+      - name: Upload selenium test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: test-results/selenium-tests.xml
+
+  # ─────────────────────────────────────────────────
+  # JOB 6 — BUILD & PUSH DOCKER IMAGES
+  # Only runs on main branch after all tests pass
+  # ─────────────────────────────────────────────────
+  docker-build:
+    name: "🐳 Build Docker Images"
+    runs-on: ubuntu-latest
+    needs: [unit-tests, backend-tests, integration-tests, frontend-tests, selenium-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: vars.DOCKERHUB_USERNAME != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: easybook-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: easybook-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker Compose validation
+        run: docker compose config --quiet
+
+  # ─────────────────────────────────────────────────
+  # JOB 7 — TEST RESULTS SUMMARY
+  # Aggregates all test results into one report
+  # ─────────────────────────────────────────────────
+  test-summary:
+    name: "📊 Test Summary"
+    runs-on: ubuntu-latest
+    needs: [unit-tests, backend-tests, integration-tests, frontend-tests, selenium-tests]
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-results
+
+      - name: Print test summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "         EASYBOOK TEST RESULTS       "
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🔬 Unit Tests:        ${{ needs.unit-tests.result }}"
+          echo "⚙️  Backend Tests:     ${{ needs.backend-tests.result }}"
+          echo "🔗 Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "🎨 Frontend Tests:    ${{ needs.frontend-tests.result }}"
+          echo "🌐 Selenium Tests:    ${{ needs.selenium-tests.result }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

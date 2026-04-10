@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Providers — EasyBook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/main.css" />
+</head>
+<body>
+<nav class="navbar" id="navbar"><div class="nav-container">
+  <a href="index.html" class="nav-logo"><span class="logo-mark">●</span> EasyBook</a>
+  <div class="nav-links" id="navLinks">
+    <a href="services.html">Services</a>
+    <a href="providers.html">Providers</a>
+    <span id="navAuth">
+      <a href="login.html" class="btn btn-ghost">Log in</a>
+      <a href="register.html" class="btn btn-primary">Get Started</a>
+    </span>
+    <span id="navUser" style="display:none">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="#" onclick="logout()" class="btn btn-ghost">Log out</a>
+    </span>
+  </div>
+  <button class="nav-toggle" onclick="toggleNav()">☰</button>
+</div></nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1>Our Providers</h1>
+    <p>Meet the professionals offering services on EasyBook</p>
+  </div>
+</div>
+
+<div class="section"><div class="container">
+  <div id="providersGrid" class="services-grid">
+    <div class="service-skeleton"></div>
+    <div class="service-skeleton"></div>
+    <div class="service-skeleton"></div>
+  </div>
+</div></div>
+
+<script src="static/js/utils.js"></script>
+<script src="static/js/api.js"></script>
+<script src="static/js/auth.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    initAuth();
+    const grid = document.getElementById('providersGrid');
+    try {
+      const providers = await api.get('/providers');
+      if (!providers.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-state-icon">👥</div>
+          <h3>No providers yet</h3>
+          <p><a href="register.html?role=provider">Become the first provider →</a></p>
+        </div>`;
+        return;
+      }
+      grid.innerHTML = providers.map(p => `
+        <div class="service-card">
+          <div class="service-card-body">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+              <div style="width:52px;height:52px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;flex-shrink:0">
+                ${p.name[0].toUpperCase()}
+              </div>
+              <div>
+                <div class="service-title" style="margin-bottom:0.1rem">${p.name}</div>
+                <span class="badge badge-success">Provider</span>
+              </div>
+            </div>
+            <div class="service-meta">
+              ${p.phone ? `<span>📞 ${p.phone}</span>` : ''}
+            </div>
+          </div>
+          <div class="service-card-footer">
+            <span class="text-muted" style="font-size:0.85rem">Member since ${new Date(p.created_at||Date.now()).getFullYear()}</span>
+            <a href="services.html" class="btn btn-sm btn-outline">View Services</a>
+          </div>
+        </div>`).join('');
+    } catch {
+      grid.innerHTML = '<p class="text-muted">Could not load providers.</p>';
+    }
+  });
+</script>
+</body>
+</html>
