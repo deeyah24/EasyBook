@@ -52,19 +52,21 @@ function validateEmail(email) {
 }
 
 /**
- * FIX: Using !! ensures that if password is null or empty, 
- * it returns a strict boolean false to satisfy Jest tests.
+ * FIX: Explicitly check for existence and length.
+ * Prevents returning "" or null to Jest.
  */
 function validatePassword(password) {
-  return !!(password && password.length >= 6);
+  if (!password) return false;
+  return password.length >= 6;
 }
 
 /**
- * FIX: Wrapped in Boolean() to ensure strict false return 
- * for empty strings or null values.
+ * FIX: Explicitly check for existence and trimmed length.
+ * Returns strict boolean false for empty strings.
  */
 function validateName(name) {
-  return !!(name && name.trim().length >= 2);
+  if (!name) return false;
+  return name.trim().length >= 2;
 }
 
 function isValidDate(dateStr) {
@@ -137,13 +139,21 @@ function buildServiceCard(svc) {
 
 // ── Modal helpers ────────────────────────────────
 function openModal(id) {
-  document.getElementById(id)?.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
 }
+
 function closeModal(id) {
-  document.getElementById(id)?.classList.remove('open');
-  document.body.style.overflow = '';
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('open');
+    document.body.style.overflow = '';
+  }
 }
+
 // Close on overlay click
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) {
