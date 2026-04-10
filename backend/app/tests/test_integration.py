@@ -89,7 +89,6 @@ class TestServicesIntegration:
     def test_get_service_by_id(self, client, db, service):
         resp = client.get(f'/api/services/{service.id}')
         assert resp.status_code == 200
-        # Corrected to match your actual service naming in seeds/fixtures
         assert resp.get_json()['name'] == 'General Consultation'
 
     def test_get_nonexistent_service(self, client, db):
@@ -135,7 +134,6 @@ class TestServicesIntegration:
         assert all(s['category_id'] == category.id for s in data['services'])
 
     def test_search_services(self, client, db, service):
-        # Search using a keyword from 'General Consultation'
         resp = client.get('/api/services?search=Consultation')
         assert resp.status_code == 200
         data = resp.get_json()
@@ -212,27 +210,32 @@ class TestCategoriesIntegration:
     def test_create_category_as_admin(self, client, db, admin_user):
         token = get_token(client, 'admin@test.com', 'adminpass')
         
-        # FIX: Ensure name is unique and all model fields are represented
-        unique_name = f"Vet-{uuid.uuid4().hex[:4]}"
+        # Using a very safe unique name (alphanumeric only)
+        # Ensuring all fields match the Category model in category.py
+        unique_suffix = uuid.uuid4().hex[:6]
         payload = {
-            "name": unique_name,
-            "description": "Veterinary services and pet care",
-            "icon": "fa-paw",
-            "color": "#FF5733"
+            "name": f"Category{unique_suffix}",
+            "description": "Integration Test Category",
+            "icon": "test-icon",
+            "color": "#123456",
+            "is_active": True
         }
 
         resp = client.post('/api/categories',
                            headers={'Authorization': f'Bearer {token}'},
                            json=payload)
         
-        # If this still fails, check your API route logic for field validation
+        # If this still fails with 422, this print will reveal the reason in your terminal
+        if resp.status_code == 422:
+            print(f"\nDEBUG 422 REASON: {resp.get_data(as_text=True)}")
+            
         assert resp.status_code == 201
 
     def test_create_category_as_customer_forbidden(self, client, db, customer_user):
         token = get_token(client, 'customer@test.com', 'password123')
         resp = client.post('/api/categories',
                            headers={'Authorization': f'Bearer {token}'},
-                           json={'name': 'Hacked'})
+                           json={'name': 'Forbidden'})
         assert resp.status_code == 403
 
 
