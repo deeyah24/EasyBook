@@ -50,28 +50,42 @@ function getStatusBadgeClass(status) {
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+
+/**
+ * FIX: Using !! ensures that if password is null or empty, 
+ * it returns a strict boolean false to satisfy Jest tests.
+ */
 function validatePassword(password) {
-  return password && password.length >= 6;
+  return !!(password && password.length >= 6);
 }
+
+/**
+ * FIX: Wrapped in Boolean() to ensure strict false return 
+ * for empty strings or null values.
+ */
 function validateName(name) {
-  return name && name.trim().length >= 2;
+  return !!(name && name.trim().length >= 2);
 }
+
 function isValidDate(dateStr) {
   if (!dateStr) return false;
   return !isNaN(new Date(dateStr).getTime());
 }
+
 function isFutureDate(dateStr) {
   if (!dateStr) return false;
   const d = new Date(dateStr);
   const today = new Date(); today.setHours(0,0,0,0);
   return d >= today;
 }
+
 function buildQueryString(params) {
   return Object.entries(params)
     .filter(([, v]) => v !== null && v !== undefined && v !== '')
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
 }
+
 function parseJwt(token) {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
