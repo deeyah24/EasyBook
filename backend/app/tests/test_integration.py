@@ -32,7 +32,6 @@ class TestAuthIntegration:
         resp = client.post('/api/auth/register', json={
             'name': 'Dupe', 'email': 'customer@test.com', 'password': 'pass'
         })
-        # Note: If your logic returns 400 for duplicates, change this to 400
         assert resp.status_code == 409
 
     def test_register_missing_fields(self, client, db):
@@ -90,7 +89,7 @@ class TestServicesIntegration:
     def test_get_service_by_id(self, client, db, service):
         resp = client.get(f'/api/services/{service.id}')
         assert resp.status_code == 200
-        # FIX: Changed 'General Checkup' to 'General Consultation' to match actual returned data
+        # Corrected to match your actual service naming in seeds/fixtures
         assert resp.get_json()['name'] == 'General Consultation'
 
     def test_get_nonexistent_service(self, client, db):
@@ -136,7 +135,7 @@ class TestServicesIntegration:
         assert all(s['category_id'] == category.id for s in data['services'])
 
     def test_search_services(self, client, db, service):
-        # FIX: Changed search query to 'Consultation' to ensure it finds the record
+        # Search using a keyword from 'General Consultation'
         resp = client.get('/api/services?search=Consultation')
         assert resp.status_code == 200
         data = resp.get_json()
@@ -191,7 +190,6 @@ class TestAppointmentsIntegration:
         assert resp.status_code == 200
 
     def test_get_appointment_unauthorized(self, client, db, appointment):
-        # No token
         resp = client.get(f'/api/appointments/{appointment.id}')
         assert resp.status_code == 401
 
@@ -213,15 +211,21 @@ class TestCategoriesIntegration:
 
     def test_create_category_as_admin(self, client, db, admin_user):
         token = get_token(client, 'admin@test.com', 'adminpass')
-        # FIX: Added unique name using uuid to avoid potential 422 duplication errors
+        
+        # FIX: Ensure name is unique and all model fields are represented
         unique_name = f"Vet-{uuid.uuid4().hex[:4]}"
+        payload = {
+            "name": unique_name,
+            "description": "Veterinary services and pet care",
+            "icon": "fa-paw",
+            "color": "#FF5733"
+        }
+
         resp = client.post('/api/categories',
                            headers={'Authorization': f'Bearer {token}'},
-                           json={
-                               'name': unique_name, 
-                               'description': 'Veterinary services', 
-                               'icon': '🐾'
-                           })
+                           json=payload)
+        
+        # If this still fails, check your API route logic for field validation
         assert resp.status_code == 201
 
     def test_create_category_as_customer_forbidden(self, client, db, customer_user):
