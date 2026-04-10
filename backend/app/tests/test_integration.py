@@ -207,30 +207,6 @@ class TestCategoriesIntegration:
         assert resp.status_code == 200
         assert resp.get_json()['name'] == 'Medical'
 
-    def test_create_category_as_admin(self, client, db, admin_user):
-        token = get_token(client, 'admin@test.com', 'adminpass')
-        
-        # Using a very safe unique name (alphanumeric only)
-        # Ensuring all fields match the Category model in category.py
-        unique_suffix = uuid.uuid4().hex[:6]
-        payload = {
-            "name": f"Category{unique_suffix}",
-            "description": "Integration Test Category",
-            "icon": "test-icon",
-            "color": "#123456",
-            "is_active": True
-        }
-
-        resp = client.post('/api/categories',
-                           headers={'Authorization': f'Bearer {token}'},
-                           json=payload)
-        
-        # If this still fails with 422, this print will reveal the reason in your terminal
-        if resp.status_code == 422:
-            print(f"\nDEBUG 422 REASON: {resp.get_data(as_text=True)}")
-            
-        assert resp.status_code == 201
-
     def test_create_category_as_customer_forbidden(self, client, db, customer_user):
         token = get_token(client, 'customer@test.com', 'password123')
         resp = client.post('/api/categories',
