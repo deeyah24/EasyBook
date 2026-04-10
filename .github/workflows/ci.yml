@@ -13,7 +13,6 @@ env:
 jobs:
   # ─────────────────────────────────────────────────
   # JOB 1 — UNIT TESTS
-  # Tests individual model methods and utility functions
   # ─────────────────────────────────────────────────
   unit-tests:
     name: "🔬 Unit Tests"
@@ -55,7 +54,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 2 — BACKEND TESTS
-  # Tests backend validation, business logic, and edge cases
   # ─────────────────────────────────────────────────
   backend-tests:
     name: "⚙️ Backend Tests"
@@ -112,7 +110,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 3 — INTEGRATION TESTS
-  # Tests full API request/response cycles with a real DB
   # ─────────────────────────────────────────────────
   integration-tests:
     name: "🔗 Integration Tests"
@@ -169,7 +166,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 4 — FRONTEND TESTS
-  # Tests frontend utility functions using Jest
   # ─────────────────────────────────────────────────
   frontend-tests:
     name: "🎨 Frontend Tests"
@@ -203,7 +199,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 5 — SELENIUM TESTS
-  # End-to-end browser tests using Selenium + Chrome
   # ─────────────────────────────────────────────────
   selenium-tests:
     name: "🌐 Selenium E2E Tests"
@@ -260,7 +255,7 @@ jobs:
         working-directory: frontend
         run: |
           # Copy templates to root for serving
-          cp templates/*.html .
+          cp templates/*.html . || true
           python -m http.server 8080 &
           sleep 3
           curl -sf http://localhost:8080 || (echo "Frontend not ready" && exit 1)
@@ -271,7 +266,8 @@ jobs:
           DATABASE_URL: postgresql://easybook_user:easybook_pass@localhost:5432/easybook_test
           SECRET_KEY: test-secret-key
         run: |
-          pytest tests/selenium/test_selenium.py \
+          # UPDATED PATH: tests/selenium -> tests/E2E
+          pytest tests/E2E/test_selenium.py \
             -v \
             --tb=short \
             --junit-xml=test-results/selenium-tests.xml \
@@ -286,7 +282,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 6 — BUILD & PUSH DOCKER IMAGES
-  # Only runs on main branch after all tests pass
   # ─────────────────────────────────────────────────
   docker-build:
     name: "🐳 Build Docker Images"
@@ -331,7 +326,6 @@ jobs:
 
   # ─────────────────────────────────────────────────
   # JOB 7 — TEST RESULTS SUMMARY
-  # Aggregates all test results into one report
   # ─────────────────────────────────────────────────
   test-summary:
     name: "📊 Test Summary"
@@ -351,7 +345,7 @@ jobs:
           echo "         EASYBOOK TEST RESULTS       "
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔬 Unit Tests:        ${{ needs.unit-tests.result }}"
-          echo "⚙️  Backend Tests:     ${{ needs.backend-tests.result }}"
+          echo "⚙️  Backend Tests:      ${{ needs.backend-tests.result }}"
           echo "🔗 Integration Tests: ${{ needs.integration-tests.result }}"
           echo "🎨 Frontend Tests:    ${{ needs.frontend-tests.result }}"
           echo "🌐 Selenium Tests:    ${{ needs.selenium-tests.result }}"
